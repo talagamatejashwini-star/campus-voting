@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🎓 Campus Voting System
 
 A full-stack Python + Flask web application for campus event voting.
@@ -40,3 +41,6 @@ Go to: http://localhost:5000
 - Live results leaderboard
 - Admin panel: add/delete events
 - Data stored in database.json (persists across restarts)
+=======
+# campus-voting
+>>>>>>> 6e2c545f1bc79658ae3d39dddc253d103f205106
