@@ -1,0 +1,62 @@
+{
+  "events": [
+    {
+      "id": 1,
+      "name": "Tech Fest 2025",
+      "category": "tech",
+      "date": "2025-04-10",
+      "venue": "CSE Block",
+      "desc": "Annual hackathon & tech expo",
+      "votes": 25
+    },
+    {
+      "id": 2,
+      "name": "Cultural Night",
+      "category": "music",
+      "date": "2025-04-15",
+      "venue": "Open Amphitheatre",
+      "desc": "Dance, music & drama performances",
+      "votes": 20
+    },
+    {
+      "id": 3,
+      "name": "Sports Day",
+      "category": "sports",
+      "date": "2025-04-20",
+      "venue": "College Ground",
+      "desc": "Inter-department sports meet",
+      "votes": 32
+    },
+    {
+      "id": 4,
+      "name": "Art Exhibition",
+      "category": "art",
+      "date": "2025-04-25",
+      "venue": "Gallery Hall",
+      "desc": "Student artwork showcase",
+      "votes": 12
+    }
+  ],
+  "votes": {
+    "sruthi22": [
+      1,
+      2
+    ],
+    "teju03": [
+      2,
+      3
+    ]
+  },
+  "students": {
+    "sruthi22": {
+      "id": "sruthi22",
+      "name": "shruthi reddy",
+      "dept": "Computer Science"
+    },
+    "teju03": {
+      "id": "teju03",
+      "name": "tejaswini",
+      "dept": "Computer Science"
+    }
+  }
+}

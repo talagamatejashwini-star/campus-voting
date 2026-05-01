@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Campus Vote</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0f; --surface: #13131a; --card: #1a1a24; --border: #2a2a3a;
+      --accent: #6c63ff; --accent2: #ff6584; --accent3: #43e97b;
+      --text: #f0f0f8; --muted: #8888aa; --radius: 16px;
+    }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; align-items:center; justify-content:center; overflow-x:hidden; }
+    body::before { content:''; position:fixed; inset:0; background: radial-gradient(ellipse 60% 50% at 20% 20%, rgba(108,99,255,0.15) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 80% 80%, rgba(255,101,132,0.10) 0%, transparent 60%); pointer-events:none; z-index:0; }
+    .page { display:none; width:100%; min-height:100vh; position:relative; z-index:1; }
+    .page.active { display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+    .login-wrap { display:flex; background:var(--card); border:1px solid var(--border); border-radius:24px; overflow:hidden; box-shadow:0 40px 80px rgba(0,0,0,0.5); max-width:860px; width:90%; animation:fadeUp 0.6s ease both; }
+    .login-left { background:linear-gradient(135deg,#6c63ff 0%,#a78bfa 50%,#ff6584 100%); padding:56px 40px; display:flex; flex-direction:column; justify-content:center; gap:20px; min-width:260px; }
+    .login-left .brand { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:#fff; line-height:1.2; }
+    .login-left .tagline { font-size:14px; color:rgba(255,255,255,0.8); line-height:1.6; }
+    .login-right { padding:48px 40px; flex:1; display:flex; flex-direction:column; justify-content:center; gap:20px; }
+    .login-right h2 { font-family:'Syne',sans-serif; font-size:22px; font-weight:700; }
+    .tab-row { display:flex; gap:4px; background:var(--surface); padding:4px; border-radius:10px; }
+    .tab-btn { flex:1; padding:8px; border:none; border-radius:8px; background:transparent; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.2s; }
+    .tab-btn.active { background:var(--accent); color:#fff; }
+    .form-group { display:flex; flex-direction:column; gap:6px; }
+    .form-group label { font-size:13px; color:var(--muted); font-weight:500; }
+    .form-group input, .form-group select { padding:12px 14px; background:var(--surface); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; outline:none; transition:border-color 0.2s; }
+    .form-group input:focus, .form-group select:focus { border-color:var(--accent); }
+    .form-group select option { background:var(--surface); }
+    .btn-primary { padding:13px; background:var(--accent); color:#fff; border:none; border-radius:10px; font-family:'Syne',sans-serif; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+    .btn-primary:hover { background:#5a52e0; transform:translateY(-1px); }
+    .error-msg { color:var(--accent2); font-size:13px; display:none; }
+    .navbar { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:16px 32px; background:rgba(10,10,15,0.85); backdrop-filter:blur(16px); border-bottom:1px solid var(--border); }
+    .nav-brand { font-family:'Syne',sans-serif; font-weight:800; font-size:18px; background:linear-gradient(90deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .nav-right { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .nav-user { font-size:13px; color:var(--muted); }
+    .nav-user span { color:var(--text); font-weight:600; }
+    .btn-outline { padding:8px 16px; background:transparent; border:1px solid var(--border); color:var(--text); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:13px; cursor:pointer; transition:all 0.2s; }
+    .btn-outline:hover { border-color:var(--accent); color:var(--accent); }
+    .nav-tabs { display:flex; gap:4px; }
+    .nav-tab { padding:8px 16px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:13px; cursor:pointer; transition:all 0.2s; }
+    .nav-tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .nav-tab:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
+    #studentPage { padding-top:80px; align-items:flex-start; }
+    .page-content { width:100%; max-width:1100px; margin:0 auto; padding:36px 24px; }
+    .page-header { margin-bottom:32px; animation:fadeUp 0.5s ease both; }
+    .page-header h1 { font-family:'Syne',sans-serif; font-size:30px; font-weight:800; }
+    .page-header p { color:var(--muted); font-size:14px; margin-top:6px; }
+    .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+    .stat-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center; }
+    .stat-box .num { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:var(--accent); }
+    .stat-box .lbl { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-top:4px; }
+    .events-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:20px; }
+    .event-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; display:flex; flex-direction:column; gap:14px; animation:fadeUp 0.5s ease both; transition:transform 0.2s,border-color 0.2s; }
+    .event-card:hover { transform:translateY(-3px); border-color:var(--accent); }
+    .event-tag { display:inline-block; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.8px; }
+    .tag-music{background:rgba(108,99,255,0.2);color:#a78bfa}.tag-sports{background:rgba(67,233,123,0.2);color:#43e97b}.tag-tech{background:rgba(255,101,132,0.2);color:#ff6584}.tag-art{background:rgba(255,193,7,0.2);color:#ffc107}.tag-other{background:rgba(100,200,255,0.2);color:#64c8ff}
+    .event-title { font-family:'Syne',sans-serif; font-size:17px; font-weight:700; }
+    .event-meta { display:flex; flex-direction:column; gap:4px; }
+    .event-meta span { font-size:12px; color:var(--muted); }
+    .event-meta span b { color:var(--text); }
+    .vote-bar-wrap { display:flex; flex-direction:column; gap:6px; }
+    .vote-bar-label { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); }
+    .vote-bar-bg { height:6px; background:var(--border); border-radius:99px; overflow:hidden; }
+    .vote-bar-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); border-radius:99px; transition:width 0.6s ease; }
+    .btn-vote { width:100%; padding:10px; border:1px solid var(--accent); background:rgba(108,99,255,0.1); color:var(--accent); border-radius:10px; font-family:'Syne',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+    .btn-vote:hover:not(:disabled){background:var(--accent);color:#fff}.btn-vote.voted{background:var(--accent3);border-color:var(--accent3);color:#0a0a0f;cursor:default}.btn-vote:disabled{opacity:0.6;cursor:not-allowed}
+    .empty-state { grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--muted); }
+    .empty-state .icon { font-size:48px; margin-bottom:12px; }
+    .result-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; display:flex; flex-direction:column; gap:12px; animation:fadeUp 0.5s ease both; }
+    .result-rank{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--border)}.result-rank.gold{color:#ffc107}.result-rank.silver{color:#9e9e9e}.result-rank.bronze{color:#cd7f32}
+    .result-votes { font-family:'Syne',sans-serif; font-size:26px; font-weight:800; color:var(--accent); }
+    .result-bar-bg { height:10px; background:var(--border); border-radius:99px; overflow:hidden; }
+    .result-bar-fill { height:100%; border-radius:99px; transition:width 0.8s ease; }
+    .fill-gold{background:linear-gradient(90deg,#ffc107,#ff9800)}.fill-silver{background:linear-gradient(90deg,#9e9e9e,#bdbdbd)}.fill-bronze{background:linear-gradient(90deg,#cd7f32,#e0965e)}.fill-default{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+    #adminPage { padding-top:80px; align-items:flex-start; }
+    .admin-layout { display:grid; grid-template-columns:1fr 1.4fr; gap:28px; width:100%; max-width:1100px; margin:0 auto; padding:36px 24px; }
+    .admin-panel { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:28px; display:flex; flex-direction:column; gap:18px; animation:fadeUp 0.5s ease both; height:fit-content; }
+    .admin-panel h2 { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; }
+    .admin-events-list { display:flex; flex-direction:column; gap:10px; max-height:500px; overflow-y:auto; }
+    .admin-event-item { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .admin-event-info .title{font-weight:600;font-size:14px}.admin-event-info .sub{font-size:12px;color:var(--muted);margin-top:2px}
+    .btn-danger { padding:6px 12px; background:rgba(255,101,132,0.1); border:1px solid var(--accent2); color:var(--accent2); border-radius:8px; font-size:12px; cursor:pointer; transition:all 0.2s; }
+    .btn-danger:hover { background:var(--accent2); color:#fff; }
+    .success-msg { color:var(--accent3); font-size:13px; display:none; }
+    .toast { position:fixed; bottom:30px; right:30px; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 20px; font-size:14px; z-index:9999; transform:translateY(100px); opacity:0; transition:all 0.3s; max-width:300px; }
+    .toast.show{transform:translateY(0);opacity:1}.toast.success{border-color:var(--accent3);color:var(--accent3)}.toast.error{border-color:var(--accent2);color:var(--accent2)}
+    @media(max-width:700px){.login-left{display:none}.admin-layout{grid-template-columns:1fr}.navbar{padding:12px 16px}}
+  </style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<div class="page active" id="loginPage">
+  <div class="login-wrap">
+    <div class="login-left">
+      <div class="brand">🎓 Campus<br>Vote</div>
+      <div class="tagline">Your voice matters. Vote for the events that inspire you on campus.</div>
+    </div>
+    <div class="login-right">
+      <h2>Welcome Back 👋</h2>
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="switchLoginTab('student')">Student</button>
+        <button class="tab-btn" onclick="switchLoginTab('admin')">Admin</button>
+      </div>
+      <div id="studentLoginForm">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="form-group"><label>Student ID</label><input type="text" id="studentId" placeholder="e.g. STU2024001"/></div>
+          <div class="form-group"><label>Full Name</label><input type="text" id="studentName" placeholder="Your full name"/></div>
+          <div class="form-group">
+            <label>Department</label>
+            <select id="studentDept">
+              <option value="">Select Department</option>
+              <option>Computer Science</option><option>Electronics</option>
+              <option>Mechanical</option><option>Civil</option><option>MBA</option><option>Other</option>
+            </select>
+          </div>
+          <div class="error-msg" id="studentError">⚠️ Please fill all fields!</div>
+          <button class="btn-primary" onclick="loginStudent()">Login as Student →</button>
+        </div>
+      </div>
+      <div id="adminLoginForm" style="display:none">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="form-group"><label>Admin Username</label><input type="text" id="adminUser" placeholder="admin"/></div>
+          <div class="form-group"><label>Password</label><input type="password" id="adminPass" placeholder="••••••••"/></div>
+          <div style="font-size:12px;color:var(--muted)">Hint: <b>admin</b> / <b>admin123</b></div>
+          <div class="error-msg" id="adminError">⚠️ Invalid credentials!</div>
+          <button class="btn-primary" onclick="loginAdmin()">Login as Admin →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="studentPage">
+  <nav class="navbar">
+    <div class="nav-brand">🎓 CampusVote</div>
+    <div class="nav-right">
+      <div class="nav-user">Hi, <span id="navStudentName">-</span></div>
+      <div class="nav-tabs">
+        <button class="nav-tab active" onclick="showStudentTab('vote')">🗳️ Vote</button>
+        <button class="nav-tab" onclick="showStudentTab('results')">📊 Results</button>
+      </div>
+      <button class="btn-outline" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+  <div id="voteTab" class="page-content">
+    <div class="page-header"><h1>🗳️ Campus Events</h1><p>Vote for the events you'd love to attend!</p></div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="num" id="totalEventsCount">0</div><div class="lbl">Events</div></div>
+      <div class="stat-box"><div class="num" id="totalVotesCount">0</div><div class="lbl">Total Votes</div></div>
+      <div class="stat-box"><div class="num" id="myVotesCount">0</div><div class="lbl">My Votes</div></div>
+    </div>
+    <div class="events-grid" id="eventsGrid"></div>
+  </div>
+  <div id="resultsTab" class="page-content" style="display:none">
+    <div class="page-header"><h1>📊 Live Results</h1><p>Real-time voting leaderboard</p></div>
+    <div class="events-grid" id="resultsGrid"></div>
+  </div>
+</div>
+
+<div class="page" id="adminPage">
+  <nav class="navbar">
+    <div class="nav-brand">🎓 CampusVote — Admin</div>
+    <div class="nav-right">
+      <button class="btn-outline" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+  <div class="admin-layout">
+    <div class="admin-panel">
+      <h2>➕ Add New Event</h2>
+      <div class="form-group"><label>Event Name</label><input type="text" id="evtName" placeholder="e.g. Tech Fest 2025"/></div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="evtCategory">
+          <option value="tech">Tech</option><option value="music">Music</option>
+          <option value="sports">Sports</option><option value="art">Art</option><option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Date</label><input type="date" id="evtDate"/></div>
+      <div class="form-group"><label>Venue</label><input type="text" id="evtVenue" placeholder="e.g. Main Auditorium"/></div>
+      <div class="form-group"><label>Description</label><input type="text" id="evtDesc" placeholder="Short description"/></div>
+      <div class="error-msg" id="evtError">⚠️ Please fill all fields!</div>
+      <div class="success-msg" id="evtSuccess">✅ Event added successfully!</div>
+      <button class="btn-primary" onclick="addEvent()">Add Event</button>
+      <div style="padding-top:8px">
+        <h2>📊 Overview</h2>
+        <div class="stats-row" style="margin-top:12px">
+          <div class="stat-box"><div class="num" id="adminTotalEvents">0</div><div class="lbl">Events</div></div>
+          <div class="stat-box"><div class="num" id="adminTotalVotes">0</div><div class="lbl">Votes</div></div>
+          <div class="stat-box"><div class="num" id="adminTotalStudents">0</div><div class="lbl">Voters</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="admin-panel" style="animation-delay:0.2s">
+      <h2>📋 Manage Events</h2>
+      <div class="admin-events-list" id="adminEventsList">
+        <div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">No events yet!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function api(url, method='GET', body=null) {
+    const opts = { method, headers:{'Content-Type':'application/json'} };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(url, opts);
+    return r.json();
+  }
+
+  function switchLoginTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===(tab==='student'?0:1)));
+    document.getElementById('studentLoginForm').style.display=tab==='student'?'block':'none';
+    document.getElementById('adminLoginForm').style.display=tab==='admin'?'block':'none';
+  }
+
+  async function loginStudent() {
+    const id=document.getElementById('studentId').value.trim();
+    const name=document.getElementById('studentName').value.trim();
+    const dept=document.getElementById('studentDept').value;
+    const err=document.getElementById('studentError');
+    if(!id||!name||!dept){err.style.display='block';return;}
+    err.style.display='none';
+    const res=await api('/api/login/student','POST',{id,name,dept});
+    if(res.success){document.getElementById('navStudentName').textContent=name;showPage('studentPage');await renderVoteTab();showToast('Welcome, '+name+'! 🎉','success');}
+    else{err.textContent='⚠️ '+res.msg;err.style.display='block';}
+  }
+
+  async function loginAdmin() {
+    const username=document.getElementById('adminUser').value.trim();
+    const password=document.getElementById('adminPass').value.trim();
+    const err=document.getElementById('adminError');
+    const res=await api('/api/login/admin','POST',{username,password});
+    if(res.success){showPage('adminPage');await renderAdminEvents();await updateAdminStats();showToast('Admin logged in! 🛡️','success');}
+    else{err.style.display='block';}
+  }
+
+  async function logout(){await api('/api/logout','POST');showPage('loginPage');showToast('Logged out.','success');}
+
+  function showPage(id){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function showStudentTab(tab){
+    document.querySelectorAll('.nav-tab').forEach((b,i)=>b.classList.toggle('active',i===(tab==='vote'?0:1)));
+    document.getElementById('voteTab').style.display=tab==='vote'?'block':'none';
+    document.getElementById('resultsTab').style.display=tab==='results'?'block':'none';
+    if(tab==='results')renderResultsTab();
+  }
+
+  async function renderVoteTab(){
+    const[evtRes,voteRes,statsRes]=await Promise.all([api('/api/events'),api('/api/my-votes'),api('/api/stats')]);
+    const events=evtRes.events||[];const myVotes=voteRes.votes||[];
+    const maxV=Math.max(...events.map(e=>e.votes||0),1);
+    document.getElementById('totalEventsCount').textContent=statsRes.total_events;
+    document.getElementById('totalVotesCount').textContent=statsRes.total_votes;
+    document.getElementById('myVotesCount').textContent=myVotes.length;
+    const grid=document.getElementById('eventsGrid');
+    if(!events.length){grid.innerHTML='<div class="empty-state"><div class="icon">📭</div><p>No events yet!</p></div>';return;}
+    grid.innerHTML=events.map((evt,i)=>{
+      const voted=myVotes.includes(evt.id);const pct=Math.round((evt.votes/maxV)*100);
+      return `<div class="event-card" style="animation-delay:${i*0.08}s">
+        <span class="event-tag tag-${evt.category}">${evt.category}</span>
+        <div class="event-title">${evt.name}</div>
+        <div class="event-meta"><span>📅 <b>${fmtDate(evt.date)}</b></span><span>📍 <b>${evt.venue}</b></span><span>📝 ${evt.desc}</span></div>
+        <div class="vote-bar-wrap"><div class="vote-bar-label"><span>${evt.votes} votes</span><span>${pct}%</span></div><div class="vote-bar-bg"><div class="vote-bar-fill" style="width:${pct}%"></div></div></div>
+        <button class="btn-vote ${voted?'voted':''}" ${voted?'disabled':''} onclick="castVote(${evt.id})">${voted?'✅ Voted!':'🗳️ Cast Vote'}</button>
+      </div>`;
+    }).join('');
+  }
+
+  async function castVote(eid){
+    const res=await api('/api/vote/'+eid,'POST');
+    if(res.success){await renderVoteTab();showToast('🎉 Vote cast!','success');}
+    else showToast(res.msg,'error');
+  }
+
+  async function renderResultsTab(){
+    const evtRes=await api('/api/events');
+    const events=(evtRes.events||[]).sort((a,b)=>b.votes-a.votes);
+    const maxV=Math.max(...events.map(e=>e.votes||0),1);
+    const totalV=events.reduce((s,e)=>s+(e.votes||0),0);
+    const fills=['fill-gold','fill-silver','fill-bronze','fill-default'];
+    const syms=['🥇','🥈','🥉'];const cls=['gold','silver','bronze'];
+    const grid=document.getElementById('resultsGrid');
+    if(!events.length){grid.innerHTML='<div class="empty-state"><div class="icon">📊</div><p>No results yet!</p></div>';return;}
+    grid.innerHTML=events.map((evt,i)=>{
+      const pct=Math.round((evt.votes/maxV)*100);const vPct=totalV>0?Math.round((evt.votes/totalV)*100):0;
+      return `<div class="result-card" style="animation-delay:${i*0.08}s">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="result-rank ${cls[i]||''}">${syms[i]||'#'+(i+1)}</div><span class="event-tag tag-${evt.category}">${evt.category}</span></div>
+        <div class="event-title">${evt.name}</div>
+        <div class="event-meta"><span>📅 <b>${fmtDate(evt.date)}</b></span><span>📍 <b>${evt.venue}</b></span></div>
+        <div class="result-votes">${evt.votes} <span style="font-size:13px;color:var(--muted)">(${vPct}% of votes)</span></div>
+        <div class="result-bar-bg"><div class="result-bar-fill ${fills[Math.min(i,3)]}" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join('');
+  }
+
+  async function addEvent(){
+    const name=document.getElementById('evtName').value.trim();
+    const category=document.getElementById('evtCategory').value;
+    const date=document.getElementById('evtDate').value;
+    const venue=document.getElementById('evtVenue').value.trim();
+    const desc=document.getElementById('evtDesc').value.trim();
+    const err=document.getElementById('evtError');const succ=document.getElementById('evtSuccess');
+    if(!name||!date||!venue||!desc){err.style.display='block';succ.style.display='none';return;}
+    err.style.display='none';
+    const res=await api('/api/events','POST',{name,category,date,venue,desc});
+    if(res.success){
+      ['evtName','evtDate','evtVenue','evtDesc'].forEach(id=>document.getElementById(id).value='');
+      succ.style.display='block';setTimeout(()=>succ.style.display='none',3000);
+      await renderAdminEvents();await updateAdminStats();showToast('Event added! ✅','success');
+    }else{err.textContent='⚠️ '+res.msg;err.style.display='block';}
+  }
+
+  async function deleteEvent(id){
+    if(!confirm('Delete this event?'))return;
+    await api('/api/events/'+id,'DELETE');
+    await renderAdminEvents();await updateAdminStats();showToast('Event deleted.','error');
+  }
+
+  async function renderAdminEvents(){
+    const res=await api('/api/events');const events=res.events||[];
+    const list=document.getElementById('adminEventsList');
+    if(!events.length){list.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">No events yet!</div>';return;}
+    list.innerHTML=events.map(evt=>`
+      <div class="admin-event-item">
+        <div class="admin-event-info"><div class="title">${evt.name}</div><div class="sub">${evt.category} &bull; ${fmtDate(evt.date)} &bull; ${evt.venue} &bull; <b style="color:var(--accent)">${evt.votes} votes</b></div></div>
+        <button class="btn-danger" onclick="deleteEvent(${evt.id})">Delete</button>
+      </div>`).join('');
+  }
+
+  async function updateAdminStats(){
+    const res=await api('/api/stats');
+    document.getElementById('adminTotalEvents').textContent=res.total_events;
+    document.getElementById('adminTotalVotes').textContent=res.total_votes;
+    document.getElementById('adminTotalStudents').textContent=res.total_voters;
+  }
+
+  function fmtDate(d){
+    if(!d)return'TBD';
+    return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  }
+  function showToast(msg,type='success'){
+    const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type+' show';
+    setTimeout(()=>t.classList.remove('show'),3000);
+  }
+
+  (async()=>{
+    const res=await api('/api/me');
+    if(res.success){
+      if(res.role==='student'){document.getElementById('navStudentName').textContent=res.user.name;showPage('studentPage');await renderVoteTab();}
+      else if(res.role==='admin'){showPage('adminPage');await renderAdminEvents();await updateAdminStats();}
+    }
+  })();
+</script>
+</body>
+</html>
